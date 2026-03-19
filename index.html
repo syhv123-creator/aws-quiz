@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Cloud Practitioner 정복</title>
+    <style>
+        :root { --primary: #232f3e; --aws-orange: #ff9900; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f2f3f3; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 500px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
+        .progress { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+        h2 { font-size: 1.2rem; color: var(--primary); margin-top: 0; line-height: 1.5; }
+        .options-grid { display: grid; gap: 10px; margin: 20px 0; }
+        .option { padding: 15px; border: 2px solid #edeff0; border-radius: 8px; background: none; text-align: left; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
+        .option:hover { border-color: var(--aws-orange); background: #fffaf0; }
+        .option.selected { border-color: var(--aws-orange); background: #fffaf0; font-weight: bold; }
+        .answer-section { display: none; margin-top: 20px; padding: 20px; background: #f1faff; border-radius: 8px; border-left: 5px solid #007dbc; }
+        .ans-text { color: #007dbc; font-weight: bold; font-size: 1.1rem; }
+        .exp-text { margin-top: 10px; line-height: 1.6; color: #444; }
+        .nav-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: opacity 0.2s; }
+        .btn-check { background: var(--aws-orange); color: white; }
+        .btn-next { background: var(--primary); color: white; }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="progress" id="progress">Loading...</div>
+            <h2 id="question">문제를 불러오는 중입니다...</h2>
+            <div class="options-grid" id="options"></div>
+            
+            <div class="nav-btns">
+                <button class="btn btn-check" onclick="showAnswer()">정답 확인</button>
+            </div>
+
+            <div id="answer-box" class="answer-section">
+                <div class="ans-text" id="correct-ans"></div>
+                <div class="exp-text" id="explanation"></div>
+                <div class="nav-btns">
+                    <button class="btn btn-next" onclick="nextQuestion()">다음 문제 ❯</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let quizData = [];
+        let currentIndex = 0;
+
+        // 1. 데이터 로드 (Live Server 환경)
+        fetch('quiz_data.json')
+            .then(res => res.json())
+            .then(data => {
+                // 원한다면 여기서 데이터를 섞을 수 있어!
+                // quizData = data.sort(() => Math.random() - 0.5); 
+                quizData = data;
+                displayQuiz();
+            })
+            .catch(err => {
+                document.getElementById('question').innerText = "데이터를 불러오지 못했습니다. Live Server로 열었는지 확인해주세요!";
+            });
+
+        function displayQuiz() {
+            const q = quizData[currentIndex];
+            document.getElementById('progress').innerText = `문제 ${currentIndex + 1} / ${quizData.length} (${q.id})`;
+            document.getElementById('question').innerText = q.question;
+            document.getElementById('answer-box').style.display = 'none';
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
+            
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option';
+                btn.innerText = opt;
+                btn.onclick = function() {
+                    document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
+                    this.classList.add('selected');
+                };
+                optionsDiv.appendChild(btn);
+            });
+            window.scrollTo(0, 0);
+        }
+
+        function showAnswer() {
+            const q = quizData[currentIndex];
+            const answerBox = document.getElementById('answer-box');
+            answerBox.style.display = 'block';
+            document.getElementById('correct-ans').innerText = "정답: " + q.answer;
+            document.getElementById('explanation').innerText = q.explanation;
+            
+            // 답변 위치로 스크롤
+            answerBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function nextQuestion() {
+            if (currentIndex < quizData.length - 1) {
+                currentIndex++;
+                displayQuiz();
+            } else {
+                alert("축하합니다! 모든 문제를 풀었습니다. 🎉");
+            }
+        }
+    </script>
+</body>
+</html>
