@@ -2,185 +2,488 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AWS Exam Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AWS Certified Cloud Practitioner - 호용 Ultimate</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <style>
         :root {
-            --bg: #f4f7f6; --card-bg: #ffffff; --text: #232f3e;
-            --primary: #ff9900; --secondary: #007dbc;
-            --success: #28a745; --error: #dc3545;
+            --bg: #f8fafc; --card-bg: rgba(255, 255, 255, 0.8);
+            --text: #1e293b; --sub-text: #64748b;
+            --primary: #ff9900; --secondary: #38bdf8;
+            --success: #22c55e; --error: #ef4444;
+            --border: rgba(226, 232, 240, 0.5);
+            --blur: blur(10px);
         }
         body.dark-mode {
-            --bg: #0f172a; --card-bg: #1e293b; --text: #f1f5f9; --secondary: #38bdf8;
+            --bg: #0f172a; --card-bg: rgba(30, 41, 59, 0.8);
+            --text: #f1f5f9; --sub-text: #94a3b8;
+            --border: rgba(51, 65, 85, 0.5);
         }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; transition: 0.3s; }
-        .container { max-width: 600px; margin: auto; }
-        .card { background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom); transition: background 0.3s; line-height: 1.5; }
+        .container { max-width: 650px; margin: 0 auto; padding-bottom: 40px; }
         
-        #mode-selection { text-align: center; padding: 50px 0; }
-        .mode-btn { width: 100%; padding: 20px; margin: 10px 0; font-size: 1.2rem; border-radius: 15px; border: 2px solid var(--primary); background: var(--card-bg); color: var(--text); cursor: pointer; transition: 0.2s; }
-        .mode-btn:hover { background: var(--primary); color: white; }
+        /* Glassmorphism Card */
+        .glass-card { background: var(--card-bg); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border); border-radius: 24px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .timer { font-weight: bold; color: var(--error); font-size: 1.1rem; }
+        /* Header & Common */
+        .main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .logo { font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .icon-btn { background: none; border: none; color: var(--sub-text); cursor: pointer; padding: 8px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .icon-btn:hover { background: rgba(0,0,0,0.05); color: var(--text); }
+        .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24 }
+
+        /* Mode Selection & Categories */
+        #mode-selection h1 { font-size: 1.8rem; margin-bottom: 10px; }
+        .sub-title { color: var(--sub-text); margin-bottom: 30px; }
+        .category-section { margin-top: 30px; }
+        .category-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px; }
+        .btn-large { width: 100%; padding: 20px; font-size: 1.1rem; border-radius: 16px; border: 2px solid var(--border); background: var(--card-bg); color: var(--text); cursor: pointer; transition: 0.2s; font-weight: 600; text-align: left; display: flex; align-items: center; gap: 12px; }
+        .btn-large:hover { border-color: var(--primary); background: rgba(255, 153, 0, 0.05); }
+        .btn-large .icon { color: var(--primary); font-size: 1.5rem; }
+        .btn-large.exam { border-color: var(--error); color: var(--error); }
+        .btn-large.exam .icon { color: var(--error); }
+        .btn-large:disabled { opacity: 0.5; cursor: not-allowed; border-color: var(--border) !important; color: var(--sub-text) !important; }
+
+        /* Quiz UI */
+        #quiz-app { display: none; position: relative; }
+        .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; color: var(--sub-text); font-size: 0.9rem; font-weight: 600; }
+        .timer { color: var(--error); display: flex; align-items: center; gap: 4px; }
+        .back-btn { color: var(--sub-text); text-decoration: none; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .question-text { font-size: 1.25rem; font-weight: 600; margin-bottom: 30px; line-height: 1.6; }
         
-        .option { 
-            padding: 16px; border: 2px solid #e2e8f0; border-radius: 12px; 
-            background: none; color: var(--text); text-align: left; cursor: pointer; 
-            margin-bottom: 10px; width: 100%; font-size: 1rem;
-        }
-        .option.selected { border-color: var(--primary); background: rgba(255, 153, 0, 0.1); }
-        .option.correct { border-color: var(--success); background: rgba(40, 167, 69, 0.1); }
-        .option.wrong { border-color: var(--error); background: rgba(220, 53, 69, 0.1); }
-
-        .answer-section { display: none; margin-top: 20px; padding: 15px; border-radius: 10px; background: rgba(0,0,0,0.05); }
-        .btn { padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
-        .btn-orange { background: var(--primary); color: white; }
-        .theme-toggle { position: fixed; top: 10px; right: 10px; padding: 5px 10px; border-radius: 15px; border: 1px solid var(--primary); cursor: pointer; background: var(--card-bg); color: var(--text); font-size: 0.8rem; }
-        #quiz-app { display: none; }
+        /* Options */
+        .options-grid { display: grid; gap: 12px; }
+        .option { padding: 18px; border: 2px solid var(--border); border-radius: 16px; background: none; color: var(--text); text-align: left; cursor: pointer; transition: 0.2s; font-size: 1rem; width: 100%; position: relative; overflow: hidden; display: flex; align-items: center; }
+        .option .opt-label { font-weight: 700; color: var(--sub-text); margin-right: 15px; width: 25px; display: inline-block; }
+        .option:hover:not(.selected):not(.correct):not(.wrong) { border-color: var(--primary); background: rgba(255, 153, 0, 0.05); }
+        .option.selected { border-color: var(--primary); background: rgba(255, 153, 0, 0.1); font-weight: 600; }
+        .option.correct { border-color: var(--success); background: rgba(34, 197, 94, 0.1); }
+        .option.wrong { border-color: var(--error); background: rgba(239, 68, 68, 0.1); }
+        
+        /* Feedback & Action */
+        #feedback-box { display: none; margin-top: 30px; padding: 20px; border-radius: 16px; background: rgba(0,0,0,0.03); animation: slideIn 0.3s ease-out; border-left: 6px solid; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .exp-title { font-weight: 700; margin-bottom: 8px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .exp-text { font-size: 0.95rem; color: var(--sub-text); line-height: 1.7; }
+        .action-area { margin-top: 30px; }
+        .btn-primary { width: 100%; padding: 18px; border: none; border-radius: 16px; cursor: pointer; font-weight: 700; font-size: 1.1rem; transition: 0.2s; color: white; background: var(--text); }
+        .btn-primary:active { transform: scale(0.98); }
+        #submit-btn { background: var(--primary); }
+        
+        /* Result Screen */
+        #result-screen { display: none; text-align: center; }
+        #result-screen h1 { font-size: 2rem; margin-bottom: 10px; }
+        .score-circle { width: 150px; height: 150px; border-radius: 50%; border: 10px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 30px auto; position: relative; }
+        .score-circle .score { font-size: 3rem; font-weight: 700; color: var(--primary); }
+        .score-circle .total { font-size: 1rem; color: var(--sub-text); }
+        .pass-status { font-weight: 700; font-size: 1.3rem; margin-bottom: 30px; }
+        .result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+        
+        /* Util */
+        .fade-in { animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-    <button class="theme-toggle" onclick="toggleDarkMode()">🌙 테마</button>
-
     <div class="container">
-        <div id="mode-selection" class="card">
-            <h1>AWS 자격증 도전! 🚀</h1>
-            <p>공부 방식을 선택해 주세요.</p>
-            <button class="mode-btn" onclick="startApp('study')">📖 학습 모드 (전체 / 정답 해설)</button>
-            <button class="mode-btn" onclick="startApp('exam')">⏱️ 시험 모드 (65문항 / 90분)</button>
-        </div>
-
-        <div id="quiz-app" class="card">
-            <div class="header">
-                <span id="progress"></span>
-                <span id="timer" class="timer"></span>
+        <header class="main-header">
+            <div class="logo"><span class="material-symbols-rounded">cloud_done</span>AWS Quiz</div>
+            <div style="display: flex; gap: 10px;">
+                <button class="icon-btn" onclick="toggleDarkMode()"><span class="material-symbols-rounded" id="theme-icon">dark_mode</span></button>
+                <button class="icon-btn" onclick="resetApp()" title="처음으로"><span class="material-symbols-rounded">home</span></button>
             </div>
-            <h2 id="question"></h2>
-            <div id="options"></div>
+        </header>
+
+        <main id="mode-selection" class="glass-card fade-in">
+            <h1>AWS 자격증 정복 🚀</h1>
+            <p class="sub-title">IT 요정 호용님의 합격을 기원합니다.</p>
             
-            <button id="action-btn" class="btn btn-orange" onclick="handleAction()">확인</button>
-
-            <div id="answer-box" class="answer-section">
-                <div id="ans-status" style="font-weight: bold; font-size: 1.1rem;"></div>
-                <p id="explanation" style="font-size: 0.9rem; margin-top: 10px;"></p>
-                <button class="btn" style="background: var(--text); color: var(--card-bg);" onclick="nextQuestion()">다음 문제 ❯</button>
+            <button class="btn-large exam" onclick="startApp('exam')">
+                <span class="material-symbols-rounded icon">timer</span>
+                <div>
+                    <div>⏱️ 시험 모드</div>
+                    <div style="font-weight: 400; font-size: 0.9rem; opacity: 0.8;">65문항 / 90분 / 결과만 확인</div>
+                </div>
+            </button>
+            
+            <button class="btn-large" onclick="startApp('study')">
+                <span class="material-symbols-rounded icon">menu_book</span>
+                <div>
+                    <div>📖 전체 학습 모드</div>
+                    <div style="font-weight: 400; font-size: 0.9rem; opacity: 0.8;">222문항 전체 / 즉시 정답 확인</div>
+                </div>
+            </button>
+            
+            <div class="category-section">
+                <h3>📂 영역별 집중 학습</h3>
+                <div class="category-grid">
+                    <button class="btn-large" onclick="startApp('cat', '개념')"><span class="material-symbols-rounded icon">rocket_launch</span>기본 개념</button>
+                    <button class="btn-large" onclick="startApp('cat', '보안')"><span class="material-symbols-rounded icon">security</span>보안/규정</button>
+                    <button class="btn-large" onclick="startApp('cat', '기술')"><span class="material-symbols-rounded icon">architecture</span>핵심 기술</button>
+                    <button class="btn-large" onclick="startApp('cat', '비용')"><span class="material-symbols-rounded icon">payments</span>비용/지원</button>
+                </div>
             </div>
-        </div>
+            
+            <div class="category-section" style="margin-top: 20px; text-align: center;">
+                <button id="wrong-btn" class="btn-large" style="border-color: var(--error); color: var(--error);" onclick="startApp('wrong')" disabled>
+                    <span class="material-symbols-rounded icon" style="color: var(--error);">history_edu</span>
+                    내 오답 노트 (<span id="wrong-count">0</span>)
+                </button>
+            </div>
+        </main>
+
+        <main id="quiz-app" class="glass-card fade-in">
+            <div class="quiz-header">
+                <div class="back-btn" onclick="resetApp()"><span class="material-symbols-rounded" style="font-size: 1.1rem;">arrow_back_ios</span>나가기</div>
+                <div id="progress"></div>
+                <div id="timer" class="timer"></div>
+            </div>
+            
+            <div id="question" class="question-text"></div>
+            
+            <div id="options" class="options-grid"></div>
+            
+            <div id="feedback-box">
+                <div class="exp-title"><span class="material-symbols-rounded">lightbulb_circle</span>해설</div>
+                <div id="explanation" class="exp-text"></div>
+            </div>
+            
+            <div class="action-area">
+                <button id="submit-btn" class="btn-primary" onclick="handleInteraction()">정답 확인</button>
+                <button id="next-btn" class="btn-primary" style="display: none;" onclick="nextQuestion()">다음 문제 ❯</button>
+            </div>
+        </main>
+
+        <main id="result-screen" class="glass-card fade-in">
+            <h1 id="result-title"></h1>
+            <p id="result-mode" class="sub-title"></p>
+            
+            <div class="score-circle">
+                <span class="score" id="result-score">0</span>
+                <span class="total" id="result-percent">0%</span>
+            </div>
+            
+            <div class="pass-status" id="pass-status"></div>
+            <p id="result-desc" class="sub-text" style="font-size: 0.95rem;"></p>
+            
+            <div class="result-actions">
+                <button class="btn-large" style="justify-content: center;" onclick="resetApp()"><span class="material-symbols-rounded">home</span>처음으로</button>
+                <button id="result-retry-btn" class="btn-large exam" style="justify-content: center;" onclick=""><span class="material-symbols-rounded">replay</span>다시 풀기</button>
+            </div>
+        </main>
     </div>
 
     <script>
-        let allData = [];
-        let quizData = [];
+        // -- Core Variables --
+        let allQuestions = []; // 전체 원본 데이터
+        let quizSet = []; // 현재 풀고 있는 문제 셋
         let currentIndex = 0;
         let score = 0;
         let isExamMode = false;
         let timerInterval;
-        let timeLeft = 90 * 60;
+        let timeLeft = 90 * 60; // 90분
+        let answeredWrongIds = JSON.parse(localStorage.getItem('wrongIds')) || []; // 오답 ID 저장소
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        // -- Initialize --
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            updateWrongNoteCount();
+            loadQuizData();
+        });
+
+        // -- Load Data --
+        async function loadQuizData() {
+            const questionText = document.getElementById('question');
+            questionText.innerText = "AWS 데이터를 불러오는 중... ☁️";
+            try {
+                const res = await fetch('quiz_data.json');
+                const data = await res.json();
+                
+                // 데이터 정제: id가 없는 경우 생성 (Q1, Q2...)
+                allQuestions = data.map((q, index) => ({
+                    ...q,
+                    id: q.id || `Q${index + 1}`
+                }));
+                questionText.innerText = "준비 완료! 🎉";
+                setTimeout(() => { if(!quizSet.length) resetApp(); }, 500); // 짤막한 로딩 후 선택화면
+            } catch (err) {
+                console.error(err);
+                questionText.innerText = "⚠️ 데이터 로드 실패! 'Live Server'로 실행했는지 확인하세요.";
+                alert("quiz_data.json 파일을 불러오지 못했습니다. 경로와 Live Server 실행 여부를 확인하세요.");
+            }
         }
-        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
 
-        fetch('quiz_data.json').then(res => res.json()).then(data => { allData = data; });
-
-        function startApp(mode) {
+        // -- App Control (Mode Start) --
+        function startApp(mode, category = null) {
+            if (!allQuestions.length) { alert("아직 데이터를 불러오는 중입니다. 잠시만 기다려주세요."); return; }
+            
+            // UI Switch
             document.getElementById('mode-selection').style.display = 'none';
             document.getElementById('quiz-app').style.display = 'block';
+            document.getElementById('result-screen').style.display = 'none';
             
+            // State Reset
+            currentIndex = 0; score = 0; isExamMode = false; clearInterval(timerInterval);
+            document.getElementById('timer').style.display = 'none';
+            document.getElementById('explanation').innerText = "";
+            document.getElementById('theme-icon').style.display = 'block'; // 테마버튼 보이게
+
+            let retryFunction;
+
             if (mode === 'exam') {
+                // 1. 시험 모드 (65문제 랜덤)
                 isExamMode = true;
-                quizData = allData.sort(() => Math.random() - 0.5).slice(0, 65);
+                timeLeft = 90 * 60;
+                quizSet = [...allQuestions].sort(() => Math.random() - 0.5).slice(0, 65);
                 startTimer();
-                document.getElementById('action-btn').innerText = "다음 문제";
+                document.getElementById('timer').style.display = 'flex';
+                retryFunction = () => startApp('exam');
+            } else if (mode === 'cat') {
+                // 2. 카테고리 모드 (해당 키워드 랜덤)
+                quizSet = allQuestions.filter(q => q.question.includes(category) || (q.explanation && q.explanation.includes(category))).sort(() => Math.random() - 0.5);
+                if (!quizSet.length) { alert(`${category} 관련 문제를 찾지 못했습니다.`); resetApp(); return; }
+                retryFunction = () => startApp('cat', category);
+            } else if (mode === 'wrong') {
+                // 3. 오답 노트 (저장된 ID 기반 랜덤)
+                quizSet = allQuestions.filter(q => answeredWrongIds.includes(q.id)).sort(() => Math.random() - 0.5);
+                if (!quizSet.length) { alert("오답 노트가 비어있습니다. 문제를 틀려야 기록됩니다!"); resetApp(); return; }
+                retryFunction = () => startApp('wrong');
             } else {
-                isExamMode = false;
-                quizData = allData.sort(() => Math.random() - 0.5);
-                document.getElementById('action-btn').innerText = "정답 확인";
-                document.getElementById('timer').innerText = "학습 모드";
+                // 4. 학습 모드 (전체 랜덤)
+                quizSet = [...allQuestions].sort(() => Math.random() - 0.5);
+                retryFunction = () => startApp('study');
             }
+
+            // 리트라이 버튼 연결
+            const retryBtn = document.getElementById('result-retry-btn');
+            retryBtn.onclick = retryFunction;
+            retryBtn.innerHTML = `<span class="material-symbols-rounded">replay</span>${mode === 'exam' ? '새 시험 치기' : '다시 풀기'}`;
+
             displayQuiz();
         }
 
+        function resetApp() {
+            clearInterval(timerInterval);
+            quizSet = [];
+            document.getElementById('mode-selection').style.display = 'block';
+            document.getElementById('quiz-app').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('theme-icon').style.display = 'block';
+            updateWrongNoteCount();
+            window.scrollTo(0, 0);
+        }
+
+        // -- Timer (Exam Mode) --
         function startTimer() {
-            timerInterval = setInterval(() => {
-                timeLeft--;
+            const timerDiv = document.getElementById('timer');
+            const updateTimerDisplay = () => {
                 let min = Math.floor(timeLeft / 60);
                 let sec = timeLeft % 60;
-                document.getElementById('timer').innerText = `남은 시간: ${min}:${sec < 10 ? '0'+sec : sec}`;
+                timerDiv.innerHTML = `<span class="material-symbols-rounded" style="font-size: 1.2rem;">timer</span>${min}:${sec < 10 ? '0'+sec : sec}`;
+                if (timeLeft <= 300) timerDiv.style.color = 'var(--error)'; // 5분 남으면 빨간색
+                else timerDiv.style.color = 'var(--sub-text)';
+            };
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
                 if (timeLeft <= 0) finishExam();
             }, 1000);
         }
 
+        // -- Quiz Display --
         function displayQuiz() {
-            const q = quizData[currentIndex];
-            document.getElementById('progress').innerText = `문제 ${currentIndex + 1} / ${quizData.length}`;
-            document.getElementById('question').innerText = q.question;
-            document.getElementById('options').innerHTML = '';
-            document.getElementById('answer-box').style.display = 'none';
-            document.getElementById('action-btn').style.display = 'block';
+            const q = quizSet[currentIndex];
+            // Header Info
+            document.getElementById('progress').innerText = `문제 ${currentIndex + 1} / ${quizSet.length} ${isExamMode ? '(시험)' : ''}`;
+            
+            // Question
+            document.getElementById('question').innerHTML = `<span style="color:var(--primary);">[${q.id}]</span> ${q.question}`;
+            
+            // Reset Feedback & Buttons
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.style.display = 'none';
+            feedbackBox.style.borderColor = 'transparent';
+            document.getElementById('submit-btn').style.display = 'block';
+            document.getElementById('submit-btn').innerText = isExamMode ? "다음 문제" : "정답 확인";
+            document.getElementById('next-btn').style.display = 'none';
 
+            // Options
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = '';
             q.options.forEach(opt => {
+                const label = opt[0]; // "A"
+                const text = opt.substring(2); // "내용"
                 const btn = document.createElement('button');
-                btn.className = 'option';
-                btn.innerText = opt;
+                btn.className = 'option fade-in';
+                btn.innerHTML = `<span class="opt-label">${label}</span><span class="opt-text">${text}</span>`;
                 btn.onclick = () => {
+                    // 해설창이 떴다면 선택 변경 불가
+                    if (document.getElementById('feedback-box').style.display === 'block') return;
                     document.querySelectorAll('.option').forEach(b => b.classList.remove('selected'));
                     btn.classList.add('selected');
                 };
-                document.getElementById('options').appendChild(btn);
+                optionsDiv.appendChild(btn);
             });
-            window.scrollTo(0,0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function handleAction() {
+        // -- Interaction (Submit / Next) --
+        function handleInteraction() {
             const selected = document.querySelector('.option.selected');
-            if (!selected) return alert("보기를 선택하세요!");
+            if (!selected) { alert("보기를 선택해 주세요! 🙏"); return; }
             
-            const q = quizData[currentIndex];
-            const isCorrect = selected.innerText[0] === q.answer;
-            if (isCorrect) score++;
+            const q = quizSet[currentIndex];
+            const selectedLabel = selected.querySelector('.opt-label').innerText;
+            const isCorrect = selectedLabel === q.answer;
 
             if (isExamMode) {
-                // 시험 모드: 해설 없이 바로 다음 문제로
+                // [시험 모드]: 정답 표시 없이 점수만 기록하고 바로 다음으로
+                if (isCorrect) score++;
+                else addWrongNote(q.id); // 시험에서도 틀린 건 오답노트로
+                
                 nextQuestion();
             } else {
-                // 학습 모드: 정답 및 해설 노출
-                showResult(isCorrect, q);
+                // [학습 모드]: 정답 피드백 보여주기
+                if (isCorrect) score++;
+                else addWrongNote(q.id); // 학습 모드에서도 오답노트
+                
+                showFeedback(isCorrect, q);
             }
         }
 
-        function showResult(isCorrect, q) {
-            document.getElementById('action-btn').style.display = 'none';
-            document.getElementById('answer-box').style.display = 'block';
-            const statusDiv = document.getElementById('ans-status');
-            statusDiv.innerText = isCorrect ? "✅ 정답입니다!" : `❌ 오답 (정답: ${q.answer})`;
-            statusDiv.style.color = isCorrect ? "var(--success)" : "var(--error)";
-            document.getElementById('explanation').innerText = q.explanation;
+        // -- Feedback (Study Mode) --
+        function showFeedback(isCorrect, question) {
+            document.getElementById('submit-btn').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'block';
             
+            const feedbackBox = document.getElementById('feedback-box');
+            feedbackBox.style.display = 'block';
+            
+            const statusTitle = feedbackBox.querySelector('.exp-title');
+            if (isCorrect) {
+                statusTitle.innerHTML = `<span class="material-symbols-rounded" style="color:var(--success)">check_circle</span>✅ 정답입니다!`;
+                feedbackBox.style.borderColor = 'var(--success)';
+            } else {
+                statusTitle.innerHTML = `<span class="material-symbols-rounded" style="color:var(--error)">cancel</span>❌ 틀렸습니다. (정답: ${question.answer})`;
+                feedbackBox.style.borderColor = 'var(--error)';
+            }
+            document.getElementById('explanation').innerText = question.explanation || "이 문제에 대한 상세 해설이 없습니다.";
+            
+            // 시각적 피드백 (보기 색상 변경)
             document.querySelectorAll('.option').forEach(btn => {
-                if (btn.innerText[0] === q.answer) btn.classList.add('correct');
-                else if (btn.classList.contains('selected')) btn.classList.add('wrong');
+                const label = btn.querySelector('.opt-label').innerText;
+                if (label === question.answer) btn.classList.add('correct'); // 정답
+                else if (btn.classList.contains('selected')) btn.classList.add('wrong'); // 내가 고른 오답
             });
+            
+            // 해설창 위치로 스크롤
+            setTimeout(() => {
+                feedbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
         }
 
+        // -- Next Question --
         function nextQuestion() {
             currentIndex++;
-            if (currentIndex < quizData.length) {
+            if (currentIndex < quizSet.length) {
                 displayQuiz();
             } else {
-                finishExam();
+                finishExam(); // 카테고리나 학습모드도 마지막엔 결과 화면으로
             }
         }
 
+        // -- Finish & Results --
         function finishExam() {
             clearInterval(timerInterval);
-            const percent = Math.round((score / quizData.length) * 100);
-            const passFail = percent >= 70 ? "🎉 합격권입니다! 고생하셨어요." : "😅 조금 더 보완이 필요해요!";
-            alert(`시험 종료!\n점수: ${percent}점 (${score}/${quizData.length})\n${passFail}`);
-            location.reload();
+            
+            // UI Switch
+            document.getElementById('quiz-app').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            window.scrollTo(0, 0);
+
+            // Calculate Score
+            const total = quizSet.length;
+            const percent = Math.round((score / total) * 100);
+            const passPercent = isExamMode ? 70 : 80; // 실제시험 70점, 연습 80점 기준
+            const isPassed = percent >= passPercent;
+
+            // Display Results
+            const titleDiv = document.getElementById('result-title');
+            const modeDiv = document.getElementById('result-mode');
+            const scoreDiv = document.getElementById('result-score');
+            const percentDiv = document.getElementById('result-percent');
+            const statusDiv = document.getElementById('pass-status');
+            const descDiv = document.getElementById('result-desc');
+            const scoreCircle = document.querySelector('.score-circle');
+
+            titleDiv.innerHTML = isExamMode ? "모의고사 결과" : "학습 종료";
+            modeDiv.innerText = `${quizSet[0].question.includes('개념') ? '[개념 카테고리]' : (quizSet[0].question.includes('보안') ? '[보안 카테고리]' : (quizSet[0].question.includes('기술') ? '[기술 카테고리]' : (quizSet[0].question.includes('비용') ? '[비용 카테고리]' : (answeredWrongIds.includes(quizSet[0].id) ? '[오답 노트]' : '[전체 학습]'))))}`;
+            scoreDiv.innerText = `${score} / ${total}`;
+            percentDiv.innerText = `${percent}%`;
+
+            if (isPassed) {
+                statusDiv.innerText = "🎊 합격권입니다! 🎉";
+                statusDiv.style.color = "var(--success)";
+                scoreCircle.style.borderColor = "var(--success)";
+                descDiv.innerText = "호용님의 실력이 빛을 발하고 있네요! 이 기세를 몰아 실제 시험에서도 좋은 결과를 얻으시길 바랍니다.";
+            } else {
+                statusDiv.innerText = "😅 보완이 필요합니다.";
+                statusDiv.style.color = "var(--error)";
+                scoreCircle.style.borderColor = "var(--error)";
+                descDiv.innerText = `아직 ${isExamMode ? '합격 기준(70%)' : '목표 기준(80%)'}에 미치지 못했습니다. 틀린 문제를 오답 노트로 복습하고 다시 도전해 보세요.`;
+            }
+        }
+
+        // -- Wrong Note (오답 노트) 로직 --
+        function addWrongNote(questionId) {
+            // 이미 저장된 ID인지 확인하고 추가
+            if (!answeredWrongIds.includes(questionId)) {
+                answeredWrongIds.push(questionId);
+                localStorage.setItem('wrongIds', JSON.stringify(answeredWrongIds));
+                updateWrongNoteCount();
+            }
+        }
+
+        function updateWrongNoteCount() {
+            const countSpan = document.getElementById('wrong-count');
+            const wrongBtn = document.getElementById('wrong-btn');
+            const count = answeredWrongIds.length;
+            countSpan.innerText = count;
+            
+            if (count > 0) {
+                wrongBtn.disabled = false;
+                wrongBtn.style.borderColor = 'var(--error)';
+                wrongBtn.style.color = 'var(--error)';
+            } else {
+                wrongBtn.disabled = true;
+                wrongBtn.style.borderColor = 'var(--border)';
+                wrongBtn.style.color = 'var(--sub-text)';
+            }
+        }
+
+        // -- Theme (다크 모드) 로직 --
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function initTheme() {
+            const isDark = localStorage.getItem('theme') === 'dark' || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon(true);
+            } else {
+                updateThemeIcon(false);
+            }
+        }
+
+        function updateThemeIcon(isDark) {
+            document.getElementById('theme-icon').innerText = isDark ? 'light_mode' : 'dark_mode';
         }
     </script>
 </body>
